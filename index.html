@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.pbar {
+  fill: purple;
+}
+
+.pbar:hover {
+  fill: steelblue;
+}
+
+.axis {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+# the first step in a d3 chart is creating the scales and measurements to be used
+# in the different components of the chart. as seen above, we did some of the formatting
+# in CSS already.
+
+var emargin = {top: 60, right: 20, bottom: 20, left: 40},
+    width = 960 - emargin.left - emargin.right,
+    height = 500 - emargin.top - emargin.bottom;
+
+var x = d3.scale.ordinal()
+    .rangeRoundBands([0, width], .1);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .ticks(10, "%");
+
+var sx = d3.scale.ordinal()
+    .rangeRoundBands([0, width/2], .1);
+
+var sy = d3.scale.linear()
+    .range([height/2, 0]);
+
+var sxAxis = d3.svg.axis()
+    .scale(sx)
+    .orient("bottom");
+
+var syAxis = d3.svg.axis()
+    .scale(sy)
+    .orient("left")
+    .ticks(10, "%");
+
+#creating the SVGs for each of the charts
+
+var esvg = d3.select("body").append("svg")
+    .attr("width", width + emargin.left + emargin.right)
+    .attr("height", height + emargin.top + emargin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + emargin.left + "," + emargin.top + ")");
+
+var isvg = d3.select("body").append("svg")
+    .attr("width", width + emargin.left + emargin.right)
+    .attr("height", height + emargin.top + emargin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + emargin.left + "," + emargin.top + ")");
+
+var psvg = d3.select("body").append("svg")
+    .attr("width", width + emargin.left + emargin.right)
+    .attr("height", height + emargin.top + emargin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + emargin.left + "," + emargin.top + ")");
+
+var ssvg = d3.select("body").append("svg")
+    .attr("width", (width + emargin.left + emargin.right)/2)
+    .attr("height", (height + emargin.top + emargin.bottom)/2)
+  .append("g")
+    .attr("transform", "translate(" + emargin.left + "," + (emargin.top/2) + ")");
+
+# the first chart
+
+d3.tsv("italian.tsv", type, function(error, data) {
+  x.domain(data.map(function(d) { return d.letter; }));
+  y.domain([0, d3.max(data, function(d) { return d.frequency; })]);
+
+  isvg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  isvg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Frequency");
+
+  isvg.selectAll(".bar")
+      .data(data)
+    .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return x(d.letter); })
+      .attr("width", x.rangeBand())
+      .attr("y", function(d) { return y(d.frequency); })
+      .attr("height", function(d) { return height - y(d.frequency); });
+
+  isvg.append("text")
+      .attr("x", (width / 2))             
+      .attr("y", 0 - (emargin.top / 2))
+      .attr("text-anchor", "middle")  
+      .style("font-size", "16px") 
+      .text("Frequency of letters in Italian");
+
+});
+
+# the second chart that is identical to the first but with different data
+
+d3.tsv("english.tsv", type, function(error, data) {
+  x.domain(data.map(function(d) { return d.letter; }));
+  y.domain([0, d3.max(data, function(d) { return d.frequency; })]);
+
+  esvg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  esvg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Frequency");
+
+  esvg.selectAll(".bar")
+      .data(data)
+    .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return x(d.letter); })
+      .attr("width", x.rangeBand())
+      .attr("y", function(d) { return y(d.frequency); })
+      .attr("height", function(d) { return height - y(d.frequency); });
+
+  esvg.append("text")
+      .attr("x", (width / 2))             
+      .attr("y", 0 - (emargin.top / 2))
+      .attr("text-anchor", "middle")  
+      .style("font-size", "16px") 
+      .text("Frequency of letters in English");
+
+});
+
+# another chart identical to the first but with different colors. Here, since the example 
+# we used declared some of the formatting in the CSS initially, to keep in line with that 
+# method, we had to give these rectangles different IDs and implement their formatting up in 
+# the CSS also. Probably not the best method: you can change the coloring here too
+
+d3.tsv("english.tsv", type, function(error, data) {
+  x.domain(data.map(function(d) { return d.letter; }));
+  y.domain([0, d3.max(data, function(d) { return d.frequency; })]);
+
+  psvg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  psvg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Frequency");
+
+  psvg.selectAll(".pbar")
+      .data(data)
+    .enter().append("rect")
+      .attr("class", "pbar")
+      .attr("x", function(d) { return x(d.letter); })
+      .attr("width", x.rangeBand())
+      .attr("y", function(d) { return y(d.frequency); })
+      .attr("height", function(d) { return height - y(d.frequency); });
+
+  psvg.append("text")
+      .attr("x", (width / 2))             
+      .attr("y", 0 - (emargin.top / 2))
+      .attr("text-anchor", "middle")  
+      .style("font-size", "16px") 
+      .text("Frequency of letters in English (but purple)");
+
+});
+
+# the last chart has different scaling. It is about half the size and the y axis goes 
+# from 0-100. 
+
+d3.tsv("english.tsv", type, function(error, data) {
+  x.domain(data.map(function(d) { return d.letter; }));
+  y.domain([0, d3.max(data, function(d) { return (d.frequency/4); })]);
+
+  ssvg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(sxAxis);
+
+  ssvg.append("g")
+      .attr("class", "y axis")
+      .call(syAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Frequency");
+
+  ssvg.selectAll(".bar")
+      .data(data)
+    .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return (x(d.letter)/2); })
+      .attr("width", (x.rangeBand())/2)
+      .attr("y", function(d) { return ((sy(d.frequency))); })
+      .attr("height", function(d) { return ((height - sy(d.frequency))/2); });
+
+  ssvg.append("text")
+      .attr("x", 250)             
+      .attr("y", 10)
+      .attr("text-anchor", "middle")  
+      .style("font-size", "12px") 
+      .text("Frequency of letters in English (but small and scaled differently)");
+
+});
+
+function type(d) {
+  d.frequency = +d.frequency;
+  return d;
+}
+
+</script>
